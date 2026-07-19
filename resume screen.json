@@ -1,0 +1,358 @@
+{
+  "name": "resume screen",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "99b2402a-112f-4f2f-8dd4-efffb367fdbf",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=={{\n`You are an HR Resume Screening Assistant.\n\nAnalyze the following Job Description and Resume.\n\nJob Description:\n${$json.job_description}\n\nResume:\n${$json.resume}\n\nEvaluate the resume using this scoring rubric:\n\n- Skills Match: 40 points\n- Experience Match: 30 points\n- Education Match: 20 points\n- Certifications & Bonus Skills: 10 points\n\nCalculate a total score between 0 and 100.\n\nRules:\n- 85-100 = Strong Fit\n- 70-84 = Possible Fit\n- Below 70 = Not Fit\n\nExtract the candidate's name and email from the resume.\n\nReturn ONLY valid JSON.\n\n{\n  \"name\": \"\",\n  \"email\": \"\",\n  \"score\": 0,\n  \"tier\": \"\",\n  \"reason\": \"\",\n  \"missing_skills\": []\n}\n\nDo not return markdown.\nDo not return explanations.\nDo not return any text before or after the JSON.`\n}}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "ebead2a3-d286-45f7-a682-099b7b098307",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        288,
+        208
+      ],
+      "id": "414af1b8-6e7c-4228-8eac-f4827d97709f",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "fgw9n2VZf1G92HBx",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "485dbc09-d0ca-42fc-bbc1-1e9ca7e79f7e",
+              "leftValue": "score",
+              "rightValue": "70",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1072,
+        0
+      ],
+      "id": "4820d4f4-b9b2-4a00-a329-a3769c95e935",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "let text = $json.output;\n\ntext = text\n  .replace(/```json/g, \"\")\n  .replace(/```/g, \"\")\n  .trim();\n\nreturn [\n  {\n    json: JSON.parse(text)\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        0
+      ],
+      "id": "87ce0541-3f91-47b0-84ba-c05e0fb5e48b",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1472,
+        32
+      ],
+      "id": "ed61f380-3b22-44dd-a4f7-7e9c0b39633e",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      job_description: `Job Title: Java Backend Developer\n\nRequired Skills:\nJava\nSpring Boot\nSQL\nREST API\nGit\nDocker\n\nExperience:\n3+ Years`,\n\n      resume: `Name: Rahul Sharma\nEmail: rahul.sharma@gmail.com\n\nSkills:\nJava\nSpring Boot\nSQL\nREST API\nGit\nDocker\n\nExperience:\nSoftware Engineer - 4 Years\n\nEducation:\nB.Tech Computer Science`\n    }\n  },\n\n  {\n    json: {\n      job_description: `Job Title: Python Backend Developer\n\nRequired Skills:\nPython\nFlask\nDjango\nSQL\nDocker\n\nExperience:\n2+ Years`,\n\n      resume: `Name: Amit Kumar\nEmail: amit.kumar@gmail.com\n\nSkills:\nPython\nFlask\nSQL\nDocker\nGit\n\nExperience:\nPython Developer - 3 Years\n\nEducation:\nB.Tech Information Technology`\n    }\n  },\n\n  {\n    json: {\n      job_description: `Job Title: Data Analyst\n\nRequired Skills:\nSQL\nExcel\nPower BI\nPython\nStatistics\n\nExperience:\n2+ Years`,\n\n      resume: `Name: Priya Verma\nEmail: priya.verma@gmail.com\n\nSkills:\nSQL\nExcel\nPower BI\nPython\nStatistics\n\nExperience:\nData Analyst - 3 Years\n\nEducation:\nM.Sc Data Science`\n    }\n  },\n\n  {\n    json: {\n      job_description: `Job Title: DevOps Engineer\n\nRequired Skills:\nDocker\nKubernetes\nAWS\nLinux\nTerraform\n\nExperience:\n4+ Years`,\n\n      resume: `Name: Rohit Singh\nEmail: rohit.singh@gmail.com\n\nSkills:\nDocker\nKubernetes\nAWS\nLinux\nTerraform\nJenkins\n\nExperience:\nDevOps Engineer - 5 Years\n\nEducation:\nB.Tech Computer Science`\n    }\n  },\n\n  {\n    json: {\n      job_description: `Job Title: Full Stack Developer\n\nRequired Skills:\nReact\nNode.js\nExpress\nMongoDB\nJavaScript\n\nExperience:\n3+ Years`,\n\n      resume: `Name: Neha Gupta\nEmail: neha.gupta@gmail.com\n\nSkills:\nReact\nNode.js\nExpress\nMongoDB\nJavaScript\nHTML\nCSS\n\nExperience:\nFull Stack Developer - 4 Years\n\nEducation:\nB.Tech Computer Science`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "e7300ead-2b82-424e-9b7b-15e7836eec4d",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\nfor (const item of items) {\n  const data = item.json;\n\n  // Skip invalid items\n  if (\n    !data.name ||\n    !data.email ||\n    data.score === undefined ||\n    !data.tier\n  ) {\n    continue;\n  }\n\n  const fitStatus = data.score >= 70 ? \"Fit\" : \"Not Fit\";\n\n  const selectionStatus =\n    data.score >= 70 ? \"Selected\" : \"Rejected\";\n\n  results.push({\n    json: {\n      name: data.name,\n      email: data.email,\n      score: data.score,\n      tier: data.tier,\n      reason: data.reason || \"\",\n      missing_skills: data.missing_skills || [],\n      fit_status: fitStatus,\n      selection_status: selectionStatus,\n    },\n  });\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        0
+      ],
+      "id": "8f305ca2-dc32-4034-b695-7397fa77e7b9",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "39a9b3aa-ea56-4cb3-a2ca-b63ca0a70bd0",
+              "name": "status",
+              "value": "selected",
+              "type": "string"
+            },
+            {
+              "id": "72bf7287-a23e-4d69-b7bd-bc21b4cb7d5c",
+              "name": "interview_status",
+              "value": "Eligible",
+              "type": "string"
+            },
+            {
+              "id": "4211a435-6fa8-42bf-bf62-5fa9fa07c616",
+              "name": "=name",
+              "value": "={{$json.name}}",
+              "type": "string"
+            },
+            {
+              "id": "b2382fb4-d5cf-4902-a357-7fd4c5c282c6",
+              "name": "=email",
+              "value": "={{$json.email}}",
+              "type": "string"
+            },
+            {
+              "id": "58211429-d20e-446d-80b9-f6f2e6abff1c",
+              "name": "=reason",
+              "value": "={{$json.reason}}",
+              "type": "string"
+            },
+            {
+              "id": "9486eed5-9112-45f1-bb89-8b3fc4a146dc",
+              "name": "=score",
+              "value": "={{$json.score}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1280,
+        96
+      ],
+      "id": "791a93d4-b8d4-4dd2-884c-9670963f5571",
+      "name": "selected Candidate"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "39615d94-ad5a-4008-9d3c-6e977b049f2d",
+              "name": "status",
+              "value": "rejected",
+              "type": "string"
+            },
+            {
+              "id": "8201835f-1b6c-453a-b225-bae29c36db33",
+              "name": "=NAME",
+              "value": "={{$json.name}}",
+              "type": "string"
+            },
+            {
+              "id": "9f1ced55-65cf-4e92-8358-d7c1ccb14ffb",
+              "name": "=email",
+              "value": "={{$json.email}}",
+              "type": "string"
+            },
+            {
+              "id": "f4237303-ef98-4e5d-9042-56d682060b3f",
+              "name": "=TIER",
+              "value": "={{$json.tier}}",
+              "type": "string"
+            },
+            {
+              "id": "858779cb-2f20-49ba-9750-aa8f81f3b9d1",
+              "name": "=REASON",
+              "value": "={{$json.reason}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1280,
+        -48
+      ],
+      "id": "531923ae-cb9a-4a75-baec-3933e499170f",
+      "name": "rejected candidate"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "rejected candidate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "selected Candidate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "selected Candidate": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "rejected candidate": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "85c16d0b-5d14-4578-869e-b80614ed84a6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fcfa14dc16ed809fc979326ca182e5b26a52d8d5a28517c043d4bcd451884962"
+  },
+  "nodeGroups": [],
+  "id": "NtcNbi2Kun3W0zz8",
+  "tags": []
+}
